@@ -5,6 +5,7 @@ import os.path
 from datetime import datetime
 import gc
 import pickle
+from art_utils import image_info
 
 def now():
     now = datetime.now()
@@ -49,33 +50,43 @@ class Images():
         self.train_Y = self.train['style']
         self.test_Y = self.test['style']
         
-    def read_images(self, img_type=cv.IMREAD_COLOR, resized=False):
+    def read_images(self, img_type=cv.IMREAD_COLOR):
         print(f"{now()}: Started reading images")
 
-        test_images = [cv.imread(fp, img_type) for fp in self.test['file_location'].copy()]
-        print(f"{now()}: Successfully read {len(test_images)} test objects")
+        self.test_X = [image_info(cv.imread(fp, img_type)) for fp in self.test['file_location'].copy()]
+        print(f"{now()}: Successfully read {len(self.test_X)} test objects")
+
+        self.train_X = [image_info(cv.imread(fp, img_type)) for fp in self.train['file_location'].copy()]
+        print(f"{now()}: Successfully read {len(self.train_X)} train objects")
+    
+        
+#     def read_images(self, img_type=cv.IMREAD_COLOR, resized=False):
+#         print(f"{now()}: Started reading images")
+
+#         test_images = [cv.imread(fp, img_type) for fp in self.test['file_location'].copy()]
+#         print(f"{now()}: Successfully read {len(test_images)} test objects")
             
-        train_images = [cv.imread(fp, img_type) for fp in self.train['file_location'].copy()]
-        print(f"{now()}: Successfully read {len(train_images)} train objects")
+#         train_images = [cv.imread(fp, img_type) for fp in self.train['file_location'].copy()]
+#         print(f"{now()}: Successfully read {len(train_images)} train objects")
 
         
-        if resized: 
-            print(f"{now()} resizing test images")
-            self.test_X = [cv.resize(im, (256, 256)) for im in test_images]
-            del test_images
-            print(f"{now()} finished resizing test images")
+#         if resized: 
+#             print(f"{now()} resizing test images")
+#             self.test_X = [cv.resize(im, (256, 256)) for im in test_images]
+#             del test_images
+#             print(f"{now()} finished resizing test images")
                   
-            self.train_X = [cv.resize(im, (256,256)) for im in train_images]
-            del train_images
-            print(f"{now()} finished resizing train images")
+#             self.train_X = [cv.resize(im, (256,256)) for im in train_images]
+#             del train_images
+#             print(f"{now()} finished resizing train images")
             
-        else:
-            self.test_X = test_images
-            del test_images
-            self.train_X = train_images
-            del train_images
+#         else:
+#             self.test_X = test_images
+#             del test_images
+#             self.train_X = train_images
+#             del train_images
         
-        gc.collect()
+#        gc.collect()
             
                                      
 #         print(f"{now()}: Successfully read {len(self.test_X)} test objects")

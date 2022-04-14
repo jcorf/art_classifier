@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import argrelextrema
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
+import pandas as pd
 
 x = np.random.random(12)
 
@@ -61,7 +62,7 @@ def mean_RGB(img, l=8,show=False):
         plt.legend()
         plt.show()
             
-    return means, maxes,key
+    return np.array(means), np.array(maxes),key
 
 
 def mean_HSV(img, l=8, show=False):
@@ -105,7 +106,7 @@ def mean_HSV(img, l=8, show=False):
         plt.legend()
         plt.show()
     
-    return means, key, local_maxima
+    return np.array(means), np.array(key), local_maxima
 
 ## Lumnosity
 
@@ -145,7 +146,7 @@ def quadrant_avg(m):
     q4 = m[bh:].T[lh:].T
     
     lum = [np.mean(x) for x in [q1,q2,q3,q4]]
-    return lum
+    return np.array(lum)
 
 def lumnosity(img):
     """
@@ -170,7 +171,7 @@ def edge_ratio(img, show=False):
     if show:
         plt.imshow(convert_color(edges))
     prod = (edges.shape[0] * edges.shape[1])
-    num_edges = sum([1 for x in edges.reshape(1, edges.shape[0] * edges.shape[1])[0] if x > 0])
+    num_edges = sum(np.where(edges.reshape(1, edges.shape[0] * edges.shape[1])[0] > 0, 1, 0))
 
     
     ratio_edges = num_edges / prod
@@ -205,7 +206,7 @@ def edges(img, show=False):
     sharpen = cv.filter2D(img, -1, unsharp_masking)
     s = edge_ratio(sharpen, show)
     
-    return n,b,s
+    return np.array([n,b,s])
 
 def dark_ratio(img):
     return sum(np.where(img.reshape(1,np.product(img.shape))[0] <= 64, 1, 0)) / np.product(img.shape)
@@ -215,4 +216,29 @@ def entropy_quadrant(img, show=False):
     entropy_img = entropy(image, disk(5))
     if show:
         img1 = plt.imshow(entropy_img, cmap='gray')
-    return quadrant_avg(entropy_img)
+    return np.array(quadrant_avg(entropy_img))
+
+##### process one img
+
+def image_info(img=np.array([]),show=False, img_fp="",edge=True):
+    if len(img) == 0:
+        img = cv.imread(img_fp)
+    
+    features = []
+    keys = []
+    n = 8
+    mean_values_rgb, maxes, key_rgb = mean_RGB(img, n, show)
+                    
+    mean_values_hsv, key_hsv, local_maxima_hsv = mean_HSV(img, n, show)
+                    
+    mean_lums = lumnosity(img)
+    if edge:
+        edge_ratios = edges(img, show)
+    else:
+        edge_ratios = np.array([])
+                    
+    dark_pixels = dark_ratio(img)
+                    
+    entropies = entropy_quadrant(img, show)
+    
+    return np.append([mean_values_rgb] ,[mean_values_hsv,local_maxima_hsv,mean_lums,edge_ratios,dark_pixels,entropies])
